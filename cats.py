@@ -10,13 +10,10 @@ cat_facts = [
     "A cat's nose is as unique as a human's fingerprint."
 ]
 
-@app.route('/api/cat_facts', methods=['POST'])
+@app.route('/api/cat_facts', methods=['GET'])
 def get_cat_facts():
-    data = request.json
-    amount = data.get('amount', 1)
-    
+    amount = int(request.args.get('amount', 1))
     facts = random.sample(cat_facts, min(amount, len(cat_facts)))
-    
     return jsonify(facts)
 
 if __name__ == '__main__':

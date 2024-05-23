@@ -2,6 +2,9 @@ import requests
 import json
 import re
 
+with open("functions.json", "r") as file:
+    tool_set = json.load(file)
+
 def make_request(prompt, tool_set, url):
     request_payload = {
         "model": "mistral:v0.3",
@@ -20,18 +23,67 @@ def extract_tool_calls(response_text):
         return tool_calls
     return None
 
-with open("functions.json", "r") as file:
-    tool_set = json.load(file)
+def process_tool_call(data):
+    for call in data:
+        if call["name"] == "get_cat_facts":
+            # Extract the amount parameter from the tool call
+            amount = call["arguments"]["amount"]
+            
+            # Make a request to your cat facts API
+            cat_facts_url = f"http://localhost:5002/api/cat_facts?amount={amount}"
+            cat_facts_response = requests.get(cat_facts_url)
+            
+            # Parse the response from the cat facts API
+            cat_facts = cat_facts_response.json()
+            
+            # Print the cat facts
+            print("Cat Facts:")
+            for fact in cat_facts:
+                print(fact)
+        if call["name"] == "get_current_weather":
+            # Extract the location and format parameters from the tool call
+            location = call["arguments"]["location"]
+            format = call["arguments"]["format"]
+            
+            # Make a request to your weather API
+            weather_url = f"http://localhost:5001/api/weather"
+            weather_data = {
+                "location": location,
+                "format": format
+            }
+            weather_response = requests.post(weather_url, json=weather_data)
+            
+            # Parse the response from the weather API
+            weather = weather_response.json()
+            
+            # Print the weather data
+            print("Weather Data:")
+            print(f"Location: {weather['location']}")
+            print(f"Temperature: {weather['temperature']} {weather['unit']}")
+            print(f"Description: {weather['description']}")
 
-url = "http://localhost:11434/api/generate"
+ollama_url = "http://localhost:11434/api/generate"
 
-prompt1 = "What is the weather like today in San Francisco"
-response1 = make_request(prompt1, tool_set, url)
-tool_calls1 = extract_tool_calls(response1['response'])
-print("Tool Calls 1:", tool_calls1)
+prompt = "What is the weather like today in San Francisco"
+response = make_request(prompt, tool_set, ollama_url)
+tool_calls = extract_tool_calls(response['response'])
 
-# Example request 2
-prompt2 = "Tell me a cat fact"
-response2 = make_request(prompt2, tool_set, url)
-tool_calls2 = extract_tool_calls(response2['response'])
-print("Tool Calls 2:", tool_calls2)
+if tool_calls:
+    print("Tool Calls", tool_calls)
+    process_tool_call(tool_calls)
+
+prompt = "Tell me a single cat fact."
+response = make_request(prompt, tool_set, ollama_url)
+tool_calls = extract_tool_calls(response['response'])
+
+if tool_calls:
+    print("Tool Calls", tool_calls)
+    process_tool_call(tool_calls)
+
+prompt = "Tell me multiple cat facts."
+response = make_request(prompt, tool_set, ollama_url)
+tool_calls = extract_tool_calls(response['response'])
+
+if tool_calls:
+    print("Tool Calls", tool_calls)
+    process_tool_call(tool_calls)
