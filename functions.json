@@ -37,5 +37,22 @@
                 "required": ["amount"]
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_president",
+            "description": "Get the president for a given year",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "year": {
+                        "type": "string",
+                        "description": "The year to get the president for"
+                    }
+                },
+                "required": ["year"]
+            }
+        }
     }
 ]
